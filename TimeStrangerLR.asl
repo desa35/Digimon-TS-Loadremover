@@ -5,7 +5,7 @@ state("Digimon Story Time Stranger")
 	byte partyChange: "Digimon Story Time Stranger.exe", 0x1C40500, 0x78, 0x28, 0x0, 0x58, 0xA7; // Textbox upon party change. 1 = Displayed; 0 = Not displayed.
 	int music: "Digimon Story Time Stranger.exe", 0x1F79980, 0x60, 0x0; // Current BGM being played. Used to determine events.
 	byte autosave: "Digimon Story Time Stranger.exe", 0x1C479E0, 0x50, 0x20, 0x0, 0x46; // 1 = Autosave; 0 otherwise.
-	int mission: "Digimon Story Time Stranger.exe", 0x1F70040, 0x718, 0xC0, 0x110, 0x98; // Story flag value. 4294967295 (FFFFFFFF) between missions.
+	int mission: "Digimon Story Time Stranger.exe", 0x1F70878, 0x138, 0x40, 0x50, 0x60, 0xF8, 0x40, 0x148; // Story flag value. -1 between missions.
 	int ap: "Digimon Story Time Stranger.exe", 0x1F7F3B8, 0xA18, 0x188, 0x590, 0x150, 0x40, 0x5C; // Tracks Anomaly Points currently held.
 	int yen: "Digimon Story Time Stranger.exe", 0x1C3AB40, 0x40, 0x58; // Tracks Yen currently held.
 	byte difficulty: "Digimon Story Time Stranger.exe", 0x1C3AB40, 0x40, 0x80; // Tracks current difficulty.
@@ -297,4 +297,5 @@ isLoading
 {
 	return current.load == 1 && current.partyChange == 0 || current.load == 0 && current.taxiLoad == 8;
 }
+
 
