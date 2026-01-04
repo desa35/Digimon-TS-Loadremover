@@ -282,10 +282,7 @@ gameTime
 	if (vars.lateStart) { vars.lateStart = false; return TimeSpan.FromSeconds(9.8); }
 }
 
-reset
-{
-	if (old.music != current.music && current.music == 113) { vars.splitHere = false; return true; }
-}
+// reset { if (old.music != current.music && current.music == 113) { vars.splitHere = false; return true; } }
 
 start
 {
@@ -297,5 +294,6 @@ isLoading
 {
 	return current.load == 1 && current.partyChange == 0 || current.load == 0 && current.taxiLoad == 8;
 }
+
 
 
