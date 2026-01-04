@@ -279,7 +279,7 @@ exit
 
 gameTime
 {
-	if (vars.lateStart) { vars.lateStart = false; return TimeSpan.FromSeconds(9.88); }
+	if (vars.lateStart) { vars.lateStart = false; return TimeSpan.FromSeconds(9.8); }
 }
 
 reset
@@ -297,3 +297,4 @@ isLoading
 {
 	return current.load == 1 && current.partyChange == 0 || current.load == 0 && current.taxiLoad == 8;
 }
+
