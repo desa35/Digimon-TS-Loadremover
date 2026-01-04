@@ -1,24 +1,23 @@
 state("Digimon Story Time Stranger")
 {
-	float load : 		"Digimon Story Time Stranger.exe", 0x1C46638, 0x10, 0x57C; // Seems to be brightness for main scene. 1 = Fully Dark
-	byte taxiLoad: 		"Digimon Story Time Stranger.exe", 0x1BEBFC0, 0x5F0, 0xD8, 0x90, 0x88, 0x38, 0x40, 0x198; // Tracks different game states. 8 = Taxi load
-	byte partyChange: 	"Digimon Story Time Stranger.exe", 0x1C40500, 0x78, 0x28, 0x0, 0x58, 0xA7; // Textbox upon party change. 1 = Displayed; 0 = Not displayed
-	int music: 			"Digimon Story Time Stranger.exe", 0x1F79980, 0x60, 0x0; // Current BGM being played. Used to determine events.
-	byte autosave: 		"Digimon Story Time Stranger.exe", 0x1C479E0, 0x50, 0x20, 0x0, 0x46; // 1 = Autosave; 0 otherwise
-	int mission: 		"Digimon Story Time Stranger.exe", 0x1C3AB40, 0x718, 0xC0, 0x110, 0x98; // Story flag value. 4294967295 (FFFFFFFF) between missions.
-	int ap: 			"Digimon Story Time Stranger.exe", 0x1F7F3B8, 0xA18, 0x188, 0x590, 0x150, 0x40, 0x5C; // Tracks Anomaly Points currently held.
-	int yen: 			"Digimon Story Time Stranger.exe", 0x1C3AB40, 0x40, 0x58; // Tracks Yen currently held.
-	byte difficulty: 	"Digimon Story Time Stranger.exe", 0x1C3AB40, 0x40, 0x80; // Tracks current difficulty.
-	int bossHP: 		"Digimon Story Time Stranger.exe", 0x1C3AB40, 0x80, 0x0, 0x110, 0x118, 0x608; // Tracks Current HP of enemy in Slot 1. Used for splitting.
+	float load : "Digimon Story Time Stranger.exe", 0x1C46638, 0x10, 0x57C; // Brightness for main scene. 1 = Fully Dark.
+	byte taxiLoad: "Digimon Story Time Stranger.exe", 0x1BEBFC0, 0x5F0, 0xD8, 0x90, 0x88, 0x38, 0x40, 0x198; // Tracks different game states. 8 = Taxi load
+	byte partyChange: "Digimon Story Time Stranger.exe", 0x1C40500, 0x78, 0x28, 0x0, 0x58, 0xA7; // Textbox upon party change. 1 = Displayed; 0 = Not displayed.
+	int music: "Digimon Story Time Stranger.exe", 0x1F79980, 0x60, 0x0; // Current BGM being played. Used to determine events.
+	byte autosave: "Digimon Story Time Stranger.exe", 0x1C479E0, 0x50, 0x20, 0x0, 0x46; // 1 = Autosave; 0 otherwise.
+	int mission: "Digimon Story Time Stranger.exe", 0x1F70040, 0x718, 0xC0, 0x110, 0x98; // Story flag value. 4294967295 (FFFFFFFF) between missions.
+	int ap: "Digimon Story Time Stranger.exe", 0x1F7F3B8, 0xA18, 0x188, 0x590, 0x150, 0x40, 0x5C; // Tracks Anomaly Points currently held.
+	int yen: "Digimon Story Time Stranger.exe", 0x1C3AB40, 0x40, 0x58; // Tracks Yen currently held.
+	byte difficulty: "Digimon Story Time Stranger.exe", 0x1C3AB40, 0x40, 0x80; // Tracks current difficulty.
+	int bossHP: "Digimon Story Time Stranger.exe", 0x1C3AB40, 0x80, 0x0, 0x110, 0x118, 0x608; // Tracks Current HP of enemy in Slot 1. Used for splitting.
 }
+
 
 startup
 {
 	vars.splitHere = false; // Used to determine if the AutoSplitter is allowed to split for Bosssplits.
-	vars.resetOK = false; // Used to stop the timer from continuously resetting.
 	vars.lateStart = false; // Used as a failsave in case the automatic start doesn't react appropriately
 
-	//// BossHP + BGM
 	// Used to determine splitting behavior. Arrays all follow this pattern: {storyHP, balancedHP/hardHP, megaHP, mega+HP, bgm}
 	vars.metalGreyHP = new List<int>{2552,3190,35700,83100,204};
 	vars.kuwagaHP = new List<int>{3624,4530,67860,160020,312};
@@ -59,12 +58,11 @@ startup
 	vars.luceHP = new List<int>{25712,32140,118170,236340,931};
 	vars.beelzeHP = new List<int>{25312,31640,129720,259440,931};
 	vars.belpheHP = new List<int>{14208,17760,75030,150060,931};
-
-
+	
 	//// Settings. All follow the pattern: {id, initiallyActive, displayedName}
 	// Bosses
 	settings.Add("bosses", true, "Bosses");
-	settings.CurrentDefaultParent = "bosses";
+	settings.CurrentDefaultParent = "bosses"; // Removes necessity of stating Parent every time
 	settings.Add("metalGrey", true, "MetalGreymon");
 	settings.Add("kuwaga", true, "Kuwagamon");
 	settings.Add("rare", true, "Raremon");
@@ -106,7 +104,7 @@ startup
 	settings.Add("belphe", true, "Belphemon SM");
 	settings.Add("chrono1", false, "Chronomon Phase 1");
 	settings.Add("chrono2", false, "Chronomon Phase 2");
-	settings.CurrentDefaultParent = null;
+	settings.CurrentDefaultParent = null; // Resets default parentsplit
 
 	// Chapters
 	settings.Add("chapters", false, "Chapters");
@@ -154,6 +152,8 @@ startup
 	settings.Add("ch420", true, "The Cycle of Time");
 	settings.Add("ch440", true, "The Final Battle over the Natural Order");
 	settings.CurrentDefaultParent = null; // Resets default parentsplit
+
+	
 }
 
 split
@@ -167,119 +167,133 @@ split
 	
 	//// Bosssplits
 	// First Titamon fight. Doesn't give Yen and therefore splits on finishing the current mission which happens ~2 seconds later.
-	if (old.mission == 110 && current.mission == 4294967295 && vars.splitHere) { return true; }
+	if (old.mission == 110 && old.mission != current.mission && vars.splitHere) { return true; }
 
 	// All fights except the final boss and Titamon increase yen upon victory. If splitHere is active it will split.
 	if (current.yen > old.yen && vars.splitHere) { vars.splitHere = false; return true; }
 
 	// Giving up on a battle plays SongID 214. Reset splitHere to avoid potential edgecases that leave splitHere active.
-	if (current.music == 214 && vars.splitHere) { vars.splitHere = false; }
+	if ((current.music == 214 || current.music == 0) && vars.splitHere) { vars.splitHere = false; }
 
 	// Chronomon has three distinct phases. Each phase change the music changes which times the split.
 	if (settings["chrono1"] && old.music == 950 && current.music == 951) { return true; }
 	if (settings["chrono2"] && old.music == 951 && current.music == 952) { return true; }
 	
 	// Activates splitHere if the selected split is active, the main enemy has a specified HP value, the game plays the (Phase 1) boss battle theme and splitHere is inactive.
-	if (settings["metalGrey"] && vars.metalGreyHP.Contains(current.bossHP) && vars.metalGreyHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["kuwaga"] && vars.kuwagaHP.Contains(current.bossHP) && vars.kuwagaHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["rare"] && vars.rareHP.Contains(current.bossHP) && vars.rareHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["vade"] && vars.vadeHP.Contains(current.bossHP) && vars.vadeHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["cyclone"] && vars.cycloneHP.Contains(current.bossHP) && vars.cycloneHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["grey"] && vars.greyHP.Contains(current.bossHP) && vars.greyHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["blackCat"] && vars.blackCatHP.Contains(current.bossHP) && vars.blackCatHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["tita"] && vars.titaHP.Contains(current.bossHP) && vars.titaHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["ogreSewers"] && vars.ogreSewersHP.Contains(current.bossHP) && vars.ogreSewersHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["parrot"] && vars.parrotHP.Contains(current.bossHP) && vars.parrotHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
+	if (settings["metalGrey"] && vars.metalGreyHP.Contains(current.bossHP) && vars.metalGreyHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["kuwaga"] && vars.kuwagaHP.Contains(current.bossHP) && vars.kuwagaHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["rare"] && vars.rareHP.Contains(current.bossHP) && vars.rareHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["vade"] && vars.vadeHP.Contains(current.bossHP) && vars.vadeHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["cyclone"] && vars.cycloneHP.Contains(current.bossHP) && vars.cycloneHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["grey"] && vars.greyHP.Contains(current.bossHP) && vars.greyHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["blackCat"] && vars.blackCatHP.Contains(current.bossHP) && vars.blackCatHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["tita"] && vars.titaHP.Contains(current.bossHP) && vars.titaHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["ogreSewers"] && vars.ogreSewersHP.Contains(current.bossHP) && vars.ogreSewersHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["parrot"] && vars.parrotHP.Contains(current.bossHP) && vars.parrotHP.Contains(current.music)) { vars.splitHere = true; }
 	if (settings["vulcanus"] && vars.vulcanusHP.Contains(current.bossHP) && vars.vulcanusHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["shark"] && vars.sharkHP.Contains(current.bossHP) && vars.sharkHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["okuwa"] && vars.okuwaHP.Contains(current.bossHP) && vars.okuwaHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["tyrantDungeon"] && vars.tyrantDungeonHP.Contains(current.bossHP) && vars.tyrantDungeonHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["ogrePalace"] && vars.ogrePalaceHP.Contains(current.bossHP) && vars.ogrePalaceHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["coredra"] && vars.coredraHP.Contains(current.bossHP) && vars.coredraHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
+	if (settings["shark"] && vars.sharkHP.Contains(current.bossHP) && vars.sharkHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["okuwa"] && vars.okuwaHP.Contains(current.bossHP) && vars.okuwaHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["tyrantDungeon"] && vars.tyrantDungeonHP.Contains(current.bossHP) && vars.tyrantDungeonHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["ogrePalace"] && vars.ogrePalaceHP.Contains(current.bossHP) && vars.ogrePalaceHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["coredra"] && vars.coredraHP.Contains(current.bossHP) && vars.coredraHP.Contains(current.music)) { vars.splitHere = true; }
 	if (settings["titaBerserk"] && vars.titaBerserkHP.Contains(current.bossHP) && vars.titaBerserkHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["skull"] && vars.skullHP.Contains(current.bossHP) && vars.skullHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["lana"] && vars.lanaHP.Contains(current.bossHP) && vars.lanaHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["calmara"] && vars.calmaraHP.Contains(current.bossHP) && vars.calmaraHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["witch"] && vars.witchHP.Contains(current.bossHP) && vars.witchHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["tyrantBoss"] && vars.tyrantBossHP.Contains(current.bossHP) && vars.tyrantBossHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["grap"] && vars.grapHP.Contains(current.bossHP) && vars.grapHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["callis"] && vars.callisHP.Contains(current.bossHP) && vars.callisHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["venom"] && vars.venomHP.Contains(current.bossHP) && vars.venomHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["zombie"] && vars.zombieHP.Contains(current.bossHP) && vars.zombieHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["kuga"] && vars.kugaHP.Contains(current.bossHP) && vars.kugaHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["apollo"] && vars.apolloHP.Contains(current.bossHP) && vars.apolloHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["diana"] && vars.dianaHP.Contains(current.bossHP) && vars.dianaHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["sora"] && vars.soraHP.Contains(current.bossHP) && vars.soraHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["juno"] && vars.junoHP.Contains(current.bossHP) && vars.junoHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["giant"] && vars.giantHP.Contains(current.bossHP) && vars.giantHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["barba"] && vars.barbaHP.Contains(current.bossHP) && vars.barbaHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["creepy"] && vars.creepyHP.Contains(current.bossHP) && vars.creepyHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["lilith"] && vars.lilithHP.Contains(current.bossHP) && vars.lilithHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["levia"] && vars.leviaHP.Contains(current.bossHP) && vars.leviaHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["luce"] && vars.luceHP.Contains(current.bossHP) && vars.luceHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["beelze"] && vars.beelzeHP.Contains(current.bossHP) && vars.beelzeHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
-	if (settings["belphe"] && vars.belpheHP.Contains(current.bossHP) && vars.belpheHP.Contains(current.music) && !vars.splitHere) { vars.splitHere = true; }
+	if (settings["skull"] && vars.skullHP.Contains(current.bossHP) && vars.skullHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["lana"] && vars.lanaHP.Contains(current.bossHP) && vars.lanaHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["calmara"] && vars.calmaraHP.Contains(current.bossHP) && vars.calmaraHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["witch"] && vars.witchHP.Contains(current.bossHP) && vars.witchHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["tyrantBoss"] && vars.tyrantBossHP.Contains(current.bossHP) && vars.tyrantBossHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["grap"] && vars.grapHP.Contains(current.bossHP) && vars.grapHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["callis"] && vars.callisHP.Contains(current.bossHP) && vars.callisHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["venom"] && vars.venomHP.Contains(current.bossHP) && vars.venomHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["zombie"] && vars.zombieHP.Contains(current.bossHP) && vars.zombieHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["kuga"] && vars.kugaHP.Contains(current.bossHP) && vars.kugaHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["apollo"] && vars.apolloHP.Contains(current.bossHP) && vars.apolloHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["diana"] && vars.dianaHP.Contains(current.bossHP) && vars.dianaHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["sora"] && vars.soraHP.Contains(current.bossHP) && vars.soraHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["juno"] && vars.junoHP.Contains(current.bossHP) && vars.junoHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["giant"] && vars.giantHP.Contains(current.bossHP) && vars.giantHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["barba"] && vars.barbaHP.Contains(current.bossHP) && vars.barbaHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["creepy"] && vars.creepyHP.Contains(current.bossHP) && vars.creepyHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["lilith"] && vars.lilithHP.Contains(current.bossHP) && vars.lilithHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["levia"] && vars.leviaHP.Contains(current.bossHP) && vars.leviaHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["luce"] && vars.luceHP.Contains(current.bossHP) && vars.luceHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["beelze"] && vars.beelzeHP.Contains(current.bossHP) && vars.beelzeHP.Contains(current.music)) { vars.splitHere = true; }
+	if (settings["belphe"] && vars.belpheHP.Contains(current.bossHP) && vars.belpheHP.Contains(current.music)) { vars.splitHere = true; }
 
 
 	//// Chaptersplits
 	// Splits when specific chapter is selected and a chapter conclused. Conclusion of a chapter causes mission to change to 4294967295
-	if (settings["ch10"] && old.mission < current.mission) { return true; }
-	if (settings["ch20"] && old.mission < current.mission) { return true; }
-	if (settings["ch30"] && old.mission < current.mission) { return true; }
-	if (settings["ch40"] && old.mission < current.mission) { return true; }
-	if (settings["ch50"] && old.mission < current.mission) { return true; }
-	if (settings["ch60"] && old.mission < current.mission) { return true; }
-	if (settings["ch70"] && old.mission < current.mission) { return true; }
-	if (settings["ch80"] && old.mission < current.mission) { return true; }
-	if (settings["ch90"] && old.mission < current.mission) { return true; }
-	if (settings["ch100"] && old.mission < current.mission) { return true; }
-	if (settings["ch110"] && old.mission < current.mission) { return true; }
-	if (settings["ch120"] && old.mission < current.mission) { return true; }
-	if (settings["ch130"] && old.mission < current.mission) { return true; }
-	if (settings["ch140"] && old.mission < current.mission) { return true; }
-	if (settings["ch150"] && old.mission < current.mission) { return true; }
-	if (settings["ch160"] && old.mission < current.mission) { return true; }
-	if (settings["ch170"] && old.mission < current.mission) { return true; }
-	if (settings["ch180"] && old.mission < current.mission) { return true; }
-	if (settings["ch190"] && old.mission < current.mission) { return true; }
-	if (settings["ch200"] && old.mission < current.mission) { return true; }
-	if (settings["ch210"] && old.mission < current.mission) { return true; }
-	if (settings["ch220"] && old.mission < current.mission) { return true; }
-	if (settings["ch230"] && old.mission < current.mission) { return true; }
-	if (settings["ch235"] && old.mission < current.mission) { return true; }
-	if (settings["ch240"] && old.mission < current.mission) { return true; }
-	if (settings["ch250"] && old.mission < current.mission) { return true; }
-	if (settings["ch260"] && old.mission < current.mission) { return true; }
-	if (settings["ch280"] && old.mission < current.mission) { return true; }
-	if (settings["ch285"] && old.mission < current.mission) { return true; }
-	if (settings["ch290"] && old.mission < current.mission) { return true; }
-	if (settings["ch300"] && old.mission < current.mission) { return true; }
-	if (settings["ch310"] && old.mission < current.mission) { return true; }
-	if (settings["ch320"] && old.mission < current.mission) { return true; }
-	if (settings["ch330"] && old.mission < current.mission) { return true; }
-	if (settings["ch340"] && old.mission < current.mission) { return true; }
-	if (settings["ch350"] && old.mission < current.mission) { return true; }
-	if (settings["ch360"] && old.mission < current.mission) { return true; }
-	if (settings["ch390"] && old.mission < current.mission) { return true; }
-	if (settings["ch400"] && old.mission < current.mission) { return true; }
-	if (settings["ch410"] && old.mission < current.mission) { return true; }
-	if (settings["ch420"] && old.mission < current.mission) { return true; }
-	if (settings["ch440"] && old.mission < current.mission) { return true; }
-	
+	if (settings["ch10"] && old.mission == 10 && old.mission != current.mission) { return true; }
+	if (settings["ch20"] && old.mission == 20 && old.mission != current.mission) { return true; }
+	if (settings["ch30"] && old.mission == 30 && old.mission != current.mission) { return true; }
+	if (settings["ch40"] && old.mission == 40 && old.mission != current.mission) { return true; }
+	if (settings["ch50"] && old.mission == 50 && old.mission != current.mission) { return true; }
+	if (settings["ch60"] && old.mission == 60 && old.mission != current.mission) { return true; }
+	if (settings["ch70"] && old.mission == 70 && old.mission != current.mission) { return true; }
+	if (settings["ch80"] && old.mission == 80 && old.mission != current.mission) { return true; }
+	if (settings["ch90"] && old.mission == 90 && old.mission != current.mission) { return true; }
+	if (settings["ch100"] && old.mission == 100 && old.mission != current.mission) { return true; }
+	if (settings["ch110"] && old.mission == 110 && old.mission != current.mission) { return true; }
+	if (settings["ch120"] && old.mission == 120 && old.mission != current.mission) { return true; }
+	if (settings["ch130"] && old.mission == 130 && old.mission != current.mission) { return true; }
+	if (settings["ch140"] && old.mission == 140 && old.mission != current.mission) { return true; }
+	if (settings["ch150"] && old.mission == 150 && old.mission != current.mission) { return true; }
+	if (settings["ch160"] && old.mission == 160 && old.mission != current.mission) { return true; }
+	if (settings["ch170"] && old.mission == 170 && old.mission != current.mission) { return true; }
+	if (settings["ch180"] && old.mission == 180 && old.mission != current.mission) { return true; }
+	if (settings["ch190"] && old.mission == 190 && old.mission != current.mission) { return true; }
+	if (settings["ch200"] && old.mission == 200 && old.mission != current.mission) { return true; }
+	if (settings["ch210"] && old.mission == 210 && old.mission != current.mission) { return true; }
+	if (settings["ch220"] && old.mission == 220 && old.mission != current.mission) { return true; }
+	if (settings["ch230"] && old.mission == 230 && old.mission != current.mission) { return true; }
+	if (settings["ch235"] && old.mission == 235 && old.mission != current.mission) { return true; }
+	if (settings["ch240"] && old.mission == 240 && old.mission != current.mission) { return true; }
+	if (settings["ch250"] && old.mission == 250 && old.mission != current.mission) { return true; }
+	if (settings["ch260"] && old.mission == 260 && old.mission != current.mission) { return true; }
+	if (settings["ch280"] && old.mission == 280 && old.mission != current.mission) { return true; }
+	if (settings["ch285"] && old.mission == 285 && old.mission != current.mission) { return true; }
+	if (settings["ch290"] && old.mission == 290 && old.mission != current.mission) { return true; }
+	if (settings["ch300"] && old.mission == 300 && old.mission != current.mission) { return true; }
+	if (settings["ch310"] && old.mission == 310 && old.mission != current.mission) { return true; }
+	if (settings["ch320"] && old.mission == 320 && old.mission != current.mission) { return true; }
+	if (settings["ch330"] && old.mission == 330 && old.mission != current.mission) { return true; }
+	if (settings["ch340"] && old.mission == 340 && old.mission != current.mission) { return true; }
+	if (settings["ch350"] && old.mission == 350 && old.mission != current.mission) { return true; }
+	if (settings["ch360"] && old.mission == 360 && old.mission != current.mission) { return true; }
+	if (settings["ch390"] && old.mission == 390 && old.mission != current.mission) { return true; }
+	if (settings["ch400"] && old.mission == 400 && old.mission != current.mission) { return true; }
+	if (settings["ch410"] && old.mission == 410 && old.mission != current.mission) { return true; }
+	if (settings["ch420"] && old.mission == 420 && old.mission != current.mission) { return true; }
+	if (settings["ch440"] && old.mission == 440 && old.mission != current.mission) { return true; }
 }
 
-init { timer.IsGameTimePaused = false; }
+init
+{
+	timer.IsGameTimePaused = false;
+}
 
-exit { timer.IsGameTimePaused = true; }
+exit
+{
+	timer.IsGameTimePaused = true;
+}
 
-reset { if (old.music != current.music && current.music == 113) { vars.splitHere = false; return true; } }
+gameTime
+{
+	if (vars.lateStart) { vars.lateStart = false; return TimeSpan.FromSeconds(9.88); }
+}
+
+reset
+{
+	if (old.music != current.music && current.music == 113) { vars.splitHere = false; return true; }
+}
 
 start
-{ 
+{
 	if (current.music == 113 && current.autosave == 1 && timer.CurrentPhase != TimerPhase.Running) { return true; }
 	if (old.music == 113 && current.music != old.music && timer.CurrentPhase != TimerPhase.Running) { vars.lateStart = true; return true; }
 }
 
 isLoading
-{ return current.load == 1 && current.partyChange == 0 || current.load == 0 && current.taxiLoad == 8; }
-
+{
+	return current.load == 1 && current.partyChange == 0 || current.load == 0 && current.taxiLoad == 8;
+}
