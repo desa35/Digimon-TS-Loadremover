@@ -14,6 +14,25 @@ state("Digimon Story Time Stranger")
 
 startup
 {
+
+	//Asks the user to set his timer to game time on livesplit if it isn't already
+  	if (timer.CurrentTimingMethod == TimingMethod.RealTime) // Taken and reworded from FF7R Autosplitter
+ 	{
+    		var timingMessage = MessageBox.Show 
+    		(
+      		"This game uses Time without Loads (Game Time) as the main timing method.\n"+
+      		"LiveSplit is currently set to show Real Time (RTA).\n"+
+      		"Would you like to set the timing method to Game Time?",
+      		"LiveSplit | Digimon Story Time Stranger",
+      		MessageBoxButtons.YesNo,MessageBoxIcon.Question
+    		);
+
+    		if (timingMessage == DialogResult.Yes)
+    		{
+      			timer.CurrentTimingMethod = TimingMethod.GameTime;
+    		}
+  	}
+
 	vars.splitHere = false; // Used to determine if the AutoSplitter is allowed to split for Bosssplits.
 	vars.lateStart = false; // Used as a failsave in case the automatic start doesn't react appropriately
 
@@ -302,5 +321,6 @@ isLoading
 	// Only loads on segments with load icons (First condition) and on room transitions (second condition; avoid Title Screen by checking Yen and music)
 	return current.load == 1 && current.partyChange == 0 || current.room == -1 && (current.music != 314 && current.music != 0) && current.yen != 0;
 }
+
 
 
