@@ -1,14 +1,14 @@
 state("Digimon Story Time Stranger")
 {
-	float brightness : "Digimon Story Time Stranger.exe", 0x1C46638, 0x10, 0x57C; // Brightness for main scene. 1 = Fully Dark. Used for final split.
-	byte load : "Digimon Story Time Stranger.exe", 0x1C44830, 0x8; // 1 = Game is loading. 0 = Game isn't loading.
-	int room : "Digimon Story Time Stranger.exe", 0x1C3AB40, 0x48, 0x10, 0x40; // Holds RoomID. -1 means no room or Title Screen
-	byte partyChange: "Digimon Story Time Stranger.exe", 0x1C40500, 0x78, 0x28, 0x0, 0x58, 0xA7; // Textbox upon party change. 1 = Displayed; 0 = Not displayed.
-	int music: "Digimon Story Time Stranger.exe", 0x1F79980, 0x60, 0x0; // Current BGM being played. Used to determine events.
+	float brightness : "Digimon Story Time Stranger.exe", 0x1C48638, 0x10, 0x57C; // Brightness for main scene. 1 = Fully Dark. Used for final split.
+	byte load : "Digimon Story Time Stranger.exe", 0x1F7E908, 0xC8; // 1 = Game is loading. 0 = Game isn't loading.
+	int room : "Digimon Story Time Stranger.exe", 0x1C3CB40, 0x48, 0x10, 0x40; // Holds RoomID. -1 means no room or Title Screen
+	byte partyChange: "Digimon Story Time Stranger.exe", 0x1C42500, 0x78, 0x28, 0x0, 0x58, 0xA7; // Textbox upon party change. 1 = Displayed; 0 = Not displayed.
+	int music: "Digimon Story Time Stranger.exe", 0x1F7B980, 0x60, 0x0; // Current BGM being played. Used to determine events.
 	byte autosave: "Digimon Story Time Stranger.exe", 0x1C479E0, 0x50, 0x20, 0x0, 0x46; // 1 = Autosave; 0 otherwise.
-	int mission: "Digimon Story Time Stranger.exe", 0x1F70040, 0x718, 0xC0, 0x110, 0x98; // Story flag value. -1 between missions.
-	int yen: "Digimon Story Time Stranger.exe", 0x1C3AB40, 0x40, 0x58; // Tracks Yen currently held.
-	int bossHP: "Digimon Story Time Stranger.exe", 0x1C3AB40, 0x80, 0x0, 0x110, 0x118, 0x608; // Tracks Current HP of enemy in Slot 1. Used for splitting. Only active in battles, mixes with Armor HP as well.
+	int mission: "Digimon Story Time Stranger.exe", 0x1F72030, 0x718, 0xC0, 0x110, 0x98; // Story flag value. -1 between missions.
+	int yen: "Digimon Story Time Stranger.exe", 0x1C3CB40, 0x40, 0x58; // Tracks Yen currently held.
+	int bossHP: "Digimon Story Time Stranger.exe", 0x1C3CB40, 0x80, 0x0, 0x110, 0x118, 0x608; // Tracks Current HP of enemy in Slot 1. Used for splitting. Only active in battles, mixes with Armor HP as well.
 }
 
 
@@ -307,20 +307,21 @@ gameTime
 	if (vars.lateStart) { vars.lateStart = false; return TimeSpan.FromSeconds(9.8); }
 }
 
-start
-{
-	// Starts when autosave icon is displayed, specific song is played and the timer isn't running yet
-	if (current.music == 113 && current.autosave == 1 && timer.CurrentPhase != TimerPhase.Running) { vars.lateStart = false; return true; }
-
-	// Checks if the timer didn't start when fading out the current track. Sets variable for late start
-	if (old.music == 113 && current.music != old.music && timer.CurrentPhase != TimerPhase.Running) { vars.lateStart = true; return true; }
-}
+// start
+// {
+// 	// Starts when autosave icon is displayed, specific song is played and the timer isn't running yet
+// 	if (current.music == 113 && current.autosave == 1 && timer.CurrentPhase != TimerPhase.Running) { vars.lateStart = false; return true; }
+// 
+// 	// Checks if the timer didn't start when fading out the current track. Sets variable for late start
+// 	if (old.music == 113 && current.music != old.music && timer.CurrentPhase != TimerPhase.Running) { vars.lateStart = true; return true; }
+// }
 
 isLoading
 {
 	// Only loads on segments with load icons (First condition) and on room transitions (second condition; avoid Title Screen by checking Yen and music)
 	return current.load == 1 && current.partyChange == 0 || current.room == -1 && (current.music != 314 && current.music != 0) && current.yen != 0;
 }
+
 
 
 
